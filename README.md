@@ -17,13 +17,16 @@ Projective is a lightweight, multi-tenant REST backend that lets organisations t
 - Built with Spring Boot 3 & Java 21; container-ready
 
 ## Quick Start
-```sh
-# Clone the repository
-$ git clone https://github.com/telesvar/projective.git
-$ cd projective
 
-# Build & run (dev profile uses in-memory H2)
-$ ./mvnw spring-boot:run
+Clone the repository:
+```sh
+git clone https://github.com/telesvar/projective.git
+cd projective
+```
+
+Build & run (dev profile uses in-memory H2):
+```sh
+mvn spring-boot:run
 ```
 
 Browse Swagger UI at http://localhost:8080/swagger-ui/index.html when the application starts.

@@ -30,7 +30,7 @@ The service is framework-agnostic on the client side; any SPA, mobile, or server
 ## 4. Non-Functional Requirements
 | ID | Category | Requirement / Metric |
 |----|----------|----------------------|
-| NFR-1 | Performance | < 100 ms P95 latency for common endpoints under 200 RPS |
+| NFR-1 | Performance | <100 ms P95 latency for common endpoints under 200 RPS |
 | NFR-2 | Security | OWASP Top-10 compliance, bcrypt-hashed passwords, JWT expiry |
 | NFR-3 | Reliability | ACID guarantees via Spring TX; health endpoint; DB migrations planned |
 | NFR-4 | Portability | Java 21, no proprietary database (defaults to H2; production targets Postgres) |
@@ -110,8 +110,8 @@ erDiagram
 ```
 
 ### Enum-based Workflows
-IssueStatus: `TODO → IN_PROGRESS → IN_REVIEW → DONE`, with adjacency constraint enforced in code (see `IssueStatus.canTransitionTo`).
-TaskStatus & ProjectStatus are simple stages without transition rules yet.
+- Issue status: `TODO → IN_PROGRESS → IN_REVIEW → DONE`, with adjacency constraint enforced in code (see `IssueStatus.canTransitionTo`)
+- Task & project status are simple stages without transition rules yet
 
 ## 7. Component View
 
@@ -179,7 +179,7 @@ sequenceDiagram
 
 ## 9. Security Design
 * `SignIn` and `SignUp` return signed JWT (HMAC-SHA256)
-* Token contains `sub` (username). Roles are re-loaded from the database on every request and attached as Spring Security authorities.
+* Token contains `sub` (username). Roles are reloaded from the database on every request and attached as Spring Security authorities
 * Additional per-team authorisation enforced in services by consulting `TeamMembership`
 * BCrypt strength configurable (`app.security.bcrypt-strength`, default 12)
 * `CorsConfig` whitelists origins via env var
