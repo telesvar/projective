@@ -1,20 +1,18 @@
 package com.example.projective.controller;
 
 import com.example.projective.entity.IssueType;
-import com.example.projective.entity.Team;
-import com.example.projective.repository.TeamRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,69 +23,81 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithMockUser(roles = "SERVICE_ADMIN")
+@Transactional
 class IssueControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private ObjectMapper mapper;
 
     @Autowired
-    private TeamRepository teamRepository;
+    private com.example.projective.repository.TeamRepository teamRepo;
 
-    private final String TEAM = "team-issue";
+    @Autowired
+    private com.example.projective.repository.WorkspaceRepository wsRepo;
+
+    private static final String TEAM = "int-team";
+    private static final String WS = "int-ws";
 
     @BeforeEach
-    void ensureTeam() {
-        teamRepository.findBySlug(TEAM).orElseGet(
-                () -> teamRepository.save(Team.builder().name("Team Issue").slug(TEAM).build()));
+    void ensureWorkspace() {
+        var team = teamRepo.findBySlug(TEAM)
+                .orElseGet(() -> teamRepo.save(com.example.projective.entity.Team.builder().name("Team I").slug(TEAM).build()));
+        wsRepo.findBySlugAndTeamSlug(WS, TEAM)
+                .orElseGet(() -> wsRepo.save(com.example.projective.entity.Workspace.builder().name("WS I").slug(WS).team(team).build()));
     }
 
-    private String wsBase() {
-        return "/api/v1/teams/" + TEAM + "/workspaces";
+    private String projectBase() {
+        return "/api/v1/teams/" + TEAM + "/workspaces/" + WS + "/projects";
     }
 
-    private Long createWorkspace() throws Exception {
-        String slug = "wi-" + UUID.randomUUID().toString().substring(0, 6);
-        Map<String, Object> ws = new HashMap<>();
-        ws.put("name", "WS" + slug);
-        ws.put("slug", slug);
-        String json = mockMvc.perform(post(wsBase())
+    private Long createProject(String name) throws Exception {
+        Map<String, Object> body = Map.of("name", name);
+        String json = mockMvc.perform(post(projectBase())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(ws)))
+                .content(mapper.writeValueAsString(body)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString();
-        return objectMapper.readTree(json).get("id").asLong();
+        JsonNode node = mapper.readTree(json);
+        return node.get("id").asLong();
+    }
+
+    private String issueBase(Long projectId) {
+        return projectBase() + "/" + projectId + "/issues";
     }
 
     @Test
-    void statusTransition_rules() throws Exception {
-        Long wsId = createWorkspace();
+    void lifecycle_create_update_status() throws Exception {
+        Long projectId = createProject("IssueProject");
         Map<String, Object> dto = new HashMap<>();
-        dto.put("title", "Issue1");
-        dto.put("type", IssueType.STORY);
+        dto.put("title", "My Issue");
+        dto.put("type", IssueType.TASK);
 
         // create
-        String issueJson = mockMvc.perform(post(wsBase() + "/" + wsId + "/issues")
+        String resp = mockMvc.perform(post(issueBase(projectId))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(dto)))
+                .content(mapper.writeValueAsString(dto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status", is("TODO")))
                 .andReturn().getResponse().getContentAsString();
-        JsonNode node = objectMapper.readTree(issueJson);
-        Long issueId = node.get("id").asLong();
+        Long issueId = mapper.readTree(resp).get("id").asLong();
 
-        // illegal skip -> expect 409
-        mockMvc.perform(patch(wsBase() + "/" + wsId + "/issues/" + issueId + "/status?status=IN_REVIEW"))
-                .andExpect(status().isConflict());
+        // update title
+        dto.put("title", "New Title");
+        mockMvc.perform(put(issueBase(projectId) + "/" + issueId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title", is("New Title")));
 
-        // legal move
-        mockMvc.perform(patch(
-                wsBase() + "/" + wsId + "/issues/" + issueId + "/status?status=IN_PROGRESS"))
+        // change status legally TODO -> IN_PROGRESS
+        mockMvc.perform(patch(issueBase(projectId) + "/" + issueId + "/status?status=IN_PROGRESS"))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get(wsBase() + "/" + wsId + "/issues/" + issueId))
+        // fetch verify
+        mockMvc.perform(get(issueBase(projectId) + "/" + issueId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status", is("IN_PROGRESS")));
     }

@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.projective.entity.Project;
-import com.example.projective.entity.Team;
+// import com.example.projective.entity.Team; // removed unused
 import com.example.projective.exception.ResourceNotFoundException;
 import com.example.projective.payload.ProjectPayload;
 import com.example.projective.repository.ProjectRepository;
-import com.example.projective.repository.TeamRepository;
+import com.example.projective.repository.WorkspaceRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,42 +20,42 @@ import java.util.stream.Collectors;
 public class ProjectService {
 
     private final ProjectRepository projectRepository;
-    private final TeamRepository teamRepository;
+    private final WorkspaceRepository workspaceRepository;
 
-    public ProjectPayload.View createProject(String teamSlug, ProjectPayload.Create dto) {
-        Team team = teamRepository.findBySlug(teamSlug)
-                .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + teamSlug));
+    public ProjectPayload.View createProject(String teamSlug, String workspaceSlug, ProjectPayload.Create dto) {
+        var workspace = workspaceRepository.findBySlugAndTeamSlug(workspaceSlug, teamSlug)
+                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found: " + workspaceSlug));
         Project project = new Project();
         project.setName(dto.name());
         project.setDescription(dto.description());
         project.setStartDate(dto.startDate());
         project.setEndDate(dto.endDate());
         project.setStatus(dto.status());
-        project.setTeam(team);
-        team.addProject(project);
+        project.setWorkspace(workspace);
+        workspace.addProject(project);
         Project saved = projectRepository.save(project);
         return toView(saved);
     }
 
     @Transactional(readOnly = true)
-    public List<ProjectPayload.View> getAllProjects(String teamSlug) {
-        return projectRepository.findByTeamSlug(teamSlug).stream()
+    public List<ProjectPayload.View> getAllProjects(String teamSlug, String workspaceSlug) {
+        return projectRepository.findByWorkspaceSlugAndWorkspaceTeamSlug(workspaceSlug, teamSlug).stream()
                 .map(this::toView)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public ProjectPayload.View getProjectById(String teamSlug, Long id) {
-        Project project = projectRepository.findByIdAndTeamSlug(id, teamSlug)
+    public ProjectPayload.View getProjectById(String teamSlug, String workspaceSlug, Long id) {
+        Project project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(id, workspaceSlug, teamSlug)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Project not found with id " + id + " in team " + teamSlug));
+                        "Project not found with id " + id + " in workspace " + workspaceSlug + ", team " + teamSlug));
         return toView(project);
     }
 
-    public ProjectPayload.View updateProject(String teamSlug, Long id, ProjectPayload.Create dto) {
-        Project project = projectRepository.findByIdAndTeamSlug(id, teamSlug)
+    public ProjectPayload.View updateProject(String teamSlug, String workspaceSlug, Long id, ProjectPayload.Create dto) {
+        Project project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(id, workspaceSlug, teamSlug)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Project not found with id " + id + " in team " + teamSlug));
+                        "Project not found with id " + id + " in workspace " + workspaceSlug));
         if (dto.name() != null)
             project.setName(dto.name());
         project.setDescription(dto.description());
@@ -66,10 +66,10 @@ public class ProjectService {
         return toView(updated);
     }
 
-    public void deleteProject(String teamSlug, Long id) {
-        Project project = projectRepository.findByIdAndTeamSlug(id, teamSlug)
+    public void deleteProject(String teamSlug, String workspaceSlug, Long id) {
+        Project project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(id, workspaceSlug, teamSlug)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Project not found with id " + id + " in team " + teamSlug));
+                        "Project not found with id " + id + " in workspace " + workspaceSlug));
         projectRepository.delete(project);
     }
 

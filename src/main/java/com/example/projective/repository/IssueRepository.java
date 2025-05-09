@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface IssueRepository extends JpaRepository<Issue, Long> {
 
-    List<Issue> findByWorkspaceId(Long workspaceId);
+    List<Issue> findByProjectId(Long projectId);
 
     List<Issue> findByParentId(Long parentId);
 

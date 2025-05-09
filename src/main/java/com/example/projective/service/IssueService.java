@@ -10,7 +10,7 @@ import com.example.projective.exception.InvalidStateTransitionException;
 import com.example.projective.exception.ResourceNotFoundException;
 import com.example.projective.payload.IssuePayload;
 import com.example.projective.repository.IssueRepository;
-import com.example.projective.repository.WorkspaceRepository;
+import com.example.projective.repository.ProjectRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,18 +21,18 @@ import java.util.stream.Collectors;
 public class IssueService {
 
     private final IssueRepository issueRepository;
-    private final WorkspaceRepository workspaceRepository;
+    private final ProjectRepository projectRepository;
 
-    public IssuePayload.View createIssue(Long workspaceId, IssuePayload.Create dto) {
-        var workspace = workspaceRepository.findById(workspaceId)
-                .orElseThrow(() -> new ResourceNotFoundException("Workspace not found with id " + workspaceId));
+    public IssuePayload.View createIssue(String teamSlug, String workspaceSlug, Long projectId, IssuePayload.Create dto) {
+        var project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(projectId, workspaceSlug, teamSlug)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
 
         Issue parent = null;
         if (dto.parentId() != null) {
             parent = issueRepository.findById(dto.parentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Parent issue not found"));
-            if (!parent.getWorkspace().getId().equals(workspaceId)) {
-                throw new IllegalArgumentException("Parent issue belongs to different workspace");
+            if (!parent.getProject().getId().equals(projectId)) {
+                throw new IllegalArgumentException("Parent issue belongs to different project");
             }
         }
 
@@ -42,26 +42,28 @@ public class IssueService {
         issue.setType(dto.type());
         issue.setPoints(dto.points());
         issue.setStatus(dto.status() != null ? dto.status() : com.example.projective.entity.IssueStatus.TODO);
-        issue.setWorkspace(workspace);
+        issue.setProject(project);
         issue.setParent(parent);
         var saved = issueRepository.save(issue);
         return toView(saved);
     }
 
     @Transactional(readOnly = true)
-    public List<IssuePayload.View> getIssues(Long workspaceId) {
-        return issueRepository.findByWorkspaceId(workspaceId).stream()
+    public List<IssuePayload.View> getIssues(String teamSlug, String workspaceSlug, Long projectId) {
+        var project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(projectId, workspaceSlug, teamSlug)
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        return issueRepository.findByProjectId(project.getId()).stream()
                 .map(this::toView)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public IssuePayload.View getIssue(Long workspaceId, Long issueId) {
-        return toView(getVerifiedIssue(workspaceId, issueId));
+    public IssuePayload.View getIssue(String teamSlug, String workspaceSlug, Long projectId, Long issueId) {
+        return toView(getVerifiedIssue(teamSlug, workspaceSlug, projectId, issueId));
     }
 
-    public IssuePayload.View updateIssue(Long workspaceId, Long issueId, IssuePayload.Create dto) {
-        var issue = getVerifiedIssue(workspaceId, issueId);
+    public IssuePayload.View updateIssue(String teamSlug, String workspaceSlug, Long projectId, Long issueId, IssuePayload.Create dto) {
+        var issue = getVerifiedIssue(teamSlug, workspaceSlug, projectId, issueId);
         if (dto.title() != null)
             issue.setTitle(dto.title());
         issue.setDescription(dto.description());
@@ -73,8 +75,8 @@ public class IssueService {
         return toView(saved);
     }
 
-    public void changeStatus(Long workspaceId, Long issueId, IssueStatus newStatus) {
-        var issue = getVerifiedIssue(workspaceId, issueId);
+    public void changeStatus(String teamSlug, String workspaceSlug, Long projectId, Long issueId, IssueStatus newStatus) {
+        var issue = getVerifiedIssue(teamSlug, workspaceSlug, projectId, issueId);
         if (!issue.getStatus().canTransitionTo(newStatus)) {
             throw new InvalidStateTransitionException(
                     "Cannot transition from " + issue.getStatus() + " to " + newStatus);
@@ -90,16 +92,18 @@ public class IssueService {
         issueRepository.save(issue);
     }
 
-    public void deleteIssue(Long workspaceId, Long issueId) {
-        var issue = getVerifiedIssue(workspaceId, issueId);
+    public void deleteIssue(String teamSlug, String workspaceSlug, Long projectId, Long issueId) {
+        var issue = getVerifiedIssue(teamSlug, workspaceSlug, projectId, issueId);
         issueRepository.delete(issue);
     }
 
-    private Issue getVerifiedIssue(Long workspaceId, Long issueId) {
+    private Issue getVerifiedIssue(String teamSlug, String workspaceSlug, Long projectId, Long issueId) {
         var issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new ResourceNotFoundException("Issue not found"));
-        if (!issue.getWorkspace().getId().equals(workspaceId)) {
-            throw new ResourceNotFoundException("Issue does not belong to workspace " + workspaceId);
+        if (!issue.getProject().getId().equals(projectId)
+                || !issue.getProject().getWorkspace().getSlug().equals(workspaceSlug)
+                || !issue.getProject().getWorkspace().getTeam().getSlug().equals(teamSlug)) {
+            throw new ResourceNotFoundException("Issue does not belong to specified project/workspace/team");
         }
         return issue;
     }
@@ -107,6 +111,6 @@ public class IssueService {
     private IssuePayload.View toView(Issue entity) {
         return new IssuePayload.View(entity.getId(), entity.getTitle(), entity.getDescription(), entity.getType(),
                 entity.getStatus(), entity.getPoints(), entity.getParent() != null ? entity.getParent().getId() : null,
-                entity.getWorkspace() != null ? entity.getWorkspace().getId() : null);
+                entity.getProject() != null ? entity.getProject().getId() : null);
     }
 }

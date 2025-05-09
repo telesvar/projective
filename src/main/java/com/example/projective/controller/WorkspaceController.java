@@ -29,13 +29,13 @@ public class WorkspaceController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).MEMBER)")
+    @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).VIEWER)")
     @GetMapping
     public ResponseEntity<List<WorkspacePayload.View>> list(@PathVariable String teamSlug) {
         return ResponseEntity.ok(workspaceService.getAll(teamSlug));
     }
 
-    @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).MEMBER)")
+    @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).VIEWER)")
     @GetMapping("/{id}")
     public ResponseEntity<WorkspacePayload.View> get(@PathVariable String teamSlug, @PathVariable Long id) {
         return ResponseEntity.ok(workspaceService.getById(teamSlug, id));

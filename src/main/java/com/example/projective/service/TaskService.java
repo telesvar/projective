@@ -10,6 +10,7 @@ import com.example.projective.exception.ResourceNotFoundException;
 import com.example.projective.payload.TaskPayload;
 import com.example.projective.repository.ProjectRepository;
 import com.example.projective.repository.TaskRepository;
+import com.example.projective.repository.WorkspaceRepository;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,11 +22,12 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
+    private final WorkspaceRepository workspaceRepository;
 
-    public TaskPayload.View createTask(String teamSlug, Long projectId, TaskPayload.Create dto) {
-        Project project = projectRepository.findByIdAndTeamSlug(projectId, teamSlug)
+    public TaskPayload.View createTask(String teamSlug, String workspaceSlug, Long projectId, TaskPayload.Create dto) {
+        Project project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(projectId, workspaceSlug, teamSlug)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Project not found with id " + projectId + " in team " + teamSlug));
+                        "Project not found with id " + projectId + " in workspace " + workspaceSlug));
         Task task = new Task();
         task.setName(dto.name());
         task.setDescription(dto.description());
@@ -38,20 +40,20 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public List<TaskPayload.View> getTasksByProject(String teamSlug, Long projectId) {
-        Project project = projectRepository.findByIdAndTeamSlug(projectId, teamSlug)
+    public List<TaskPayload.View> getTasksByProject(String teamSlug, String workspaceSlug, Long projectId) {
+        Project project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(projectId, workspaceSlug, teamSlug)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Project not found with id " + projectId + " in team " + teamSlug));
+                        "Project not found with id " + projectId + " in workspace " + workspaceSlug));
         return taskRepository.findByProjectId(project.getId()).stream()
                 .map(this::toView)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public TaskPayload.View getTaskById(String teamSlug, Long projectId, Long taskId) {
-        Project project = projectRepository.findByIdAndTeamSlug(projectId, teamSlug)
+    public TaskPayload.View getTaskById(String teamSlug, String workspaceSlug, Long projectId, Long taskId) {
+        Project project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(projectId, workspaceSlug, teamSlug)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Project not found with id " + projectId + " in team " + teamSlug));
+                        "Project not found with id " + projectId + " in workspace " + workspaceSlug));
         Task task = taskRepository.findById(taskId)
                 .filter(t -> t.getProject().getId().equals(project.getId()))
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -59,10 +61,10 @@ public class TaskService {
         return toView(task);
     }
 
-    public TaskPayload.View updateTask(String teamSlug, Long projectId, Long taskId, TaskPayload.Create dto) {
-        Project project = projectRepository.findByIdAndTeamSlug(projectId, teamSlug)
+    public TaskPayload.View updateTask(String teamSlug, String workspaceSlug, Long projectId, Long taskId, TaskPayload.Create dto) {
+        Project project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(projectId, workspaceSlug, teamSlug)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Project not found with id " + projectId + " in team " + teamSlug));
+                        "Project not found with id " + projectId + " in workspace " + workspaceSlug));
         Task task = taskRepository.findById(taskId)
                 .filter(t -> t.getProject().getId().equals(project.getId()))
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -79,10 +81,10 @@ public class TaskService {
         return toView(updated);
     }
 
-    public void deleteTask(String teamSlug, Long projectId, Long taskId) {
-        Project project = projectRepository.findByIdAndTeamSlug(projectId, teamSlug)
+    public void deleteTask(String teamSlug, String workspaceSlug, Long projectId, Long taskId) {
+        Project project = projectRepository.findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(projectId, workspaceSlug, teamSlug)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Project not found with id " + projectId + " in team " + teamSlug));
+                        "Project not found with id " + projectId + " in workspace " + workspaceSlug));
         Task task = taskRepository.findById(taskId)
                 .filter(t -> t.getProject().getId().equals(project.getId()))
                 .orElseThrow(() -> new ResourceNotFoundException(

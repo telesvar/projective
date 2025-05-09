@@ -47,7 +47,7 @@ public class TeamService {
     @Transactional(readOnly = true)
     public List<TeamPayload.View> listMine(String username) {
         return membershipRepository
-                .findByUserUsernameAndRoleIn(username, List.of(TeamRole.MEMBER, TeamRole.ADMIN, TeamRole.OWNER))
+                .findByUserUsernameAndRoleIn(username, List.of(TeamRole.VIEWER, TeamRole.MEMBER, TeamRole.ADMIN, TeamRole.OWNER))
                 .stream()
                 .map(m -> toView(m.getTeam()))
                 .collect(Collectors.toList());

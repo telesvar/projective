@@ -5,14 +5,17 @@ package com.example.projective.entity;
  */
 public enum TeamRole {
 
-    /** Basic read-only / contributor. */
-    MEMBER(0),
+    /** Read-only member who can only view items inside the team. */
+    VIEWER(0),
+
+    /** Regular contributor – can create and modify Tasks / Issues. */
+    MEMBER(1),
 
     /** Manager of a team (can create workspace / projects, invite members). */
-    ADMIN(1),
+    ADMIN(2),
 
     /** Team owner – has full control including deleting the team. */
-    OWNER(2);
+    OWNER(3);
 
     private final int level;
 

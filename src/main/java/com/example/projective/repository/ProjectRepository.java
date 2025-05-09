@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
-    List<Project> findByTeamSlug(String slug);
+    List<Project> findByWorkspaceSlugAndWorkspaceTeamSlug(String workspaceSlug, String teamSlug);
 
-    Optional<Project> findByIdAndTeamSlug(Long id, String slug);
+    Optional<Project> findByIdAndWorkspaceSlugAndWorkspaceTeamSlug(Long id, String workspaceSlug, String teamSlug);
 }

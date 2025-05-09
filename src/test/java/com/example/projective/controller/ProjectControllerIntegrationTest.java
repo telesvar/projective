@@ -33,7 +33,11 @@ class ProjectControllerIntegrationTest {
     @Autowired
     private com.example.projective.repository.TeamRepository teamRepository;
 
+    @Autowired
+    private com.example.projective.repository.WorkspaceRepository workspaceRepository;
+
     private static final String TEAM = "test-int";
+    private static final String WS = "ws-int";
 
     @BeforeEach
     void setupTeam() {
@@ -41,10 +45,15 @@ class ProjectControllerIntegrationTest {
             teamRepository
                     .save(com.example.projective.entity.Team.builder().name("Test Team").slug(TEAM).build());
         }
+        var team = teamRepository.findBySlug(TEAM).orElseThrow();
+        if (workspaceRepository.findBySlugAndTeamSlug(WS, TEAM).isEmpty()) {
+            workspaceRepository.save(com.example.projective.entity.Workspace.builder()
+                    .name("Workspace Int").slug(WS).team(team).build());
+        }
     }
 
     private String base() {
-        return "/api/v1/teams/" + TEAM + "/projects";
+        return "/api/v1/teams/" + TEAM + "/workspaces/" + WS + "/projects";
     }
 
     @Test

@@ -22,8 +22,8 @@ public class WorkspaceService {
     private final TeamRepository teamRepository;
 
     public WorkspacePayload.View createWorkspace(String teamSlug, WorkspacePayload.Create dto) {
-        if (workspaceRepository.existsBySlug(dto.slug())) {
-            throw new IllegalArgumentException("Workspace slug already exists");
+        if (workspaceRepository.existsBySlugAndTeamSlug(dto.slug(), teamSlug)) {
+            throw new IllegalArgumentException("Workspace slug already exists within team");
         }
         Team team = teamRepository.findBySlug(teamSlug)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found: " + teamSlug));

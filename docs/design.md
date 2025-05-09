@@ -3,7 +3,7 @@
 ## 1. Vision & Scope
 Projective is a multi-tenant, role-based REST API that lets organisations manage the full project lifecycle:
 
-* Workspace-centric issue tracking
+* Multi-level issue tracking across teams, workspaces and projects
 * Kanban-style task management for projects
 * Team organisation with fine-grained roles
 * JWT-secured, stateless access for web & mobile clients
@@ -20,9 +20,9 @@ The service is framework-agnostic on the client side; any SPA, mobile, or server
 ## 3. Functional Requirements
 | ID | Requirement |
 |----|-------------|
-| FR-1 | Create / read / update / delete (CRUD) Workspaces, Projects, Tasks, Issues |
+| FR-1 | Create / read / update / delete (CRUD) Teams, Workspaces, Projects, Tasks, Issues |
 | FR-2 | Hierarchical Issues (parent-subtask) with constrained status transitions |
-| FR-3 | Team membership with roles (`MEMBER`, `ADMIN`, `OWNER`) |
+| FR-3 | Team membership with roles (`VIEWER`, `MEMBER`, `ADMIN`, `OWNER`); global `SERVICE_ADMIN` |
 | FR-4 | JWT-based authentication; per-endpoint authorisation |
 | FR-5 | Pagination & filtering (future work) |
 | FR-6 | OpenAPI / Swagger documentation auto-generated |
@@ -62,10 +62,10 @@ erDiagram
     USER ||--o{ TEAM_MEMBERSHIP : has
     TEAM ||--o{ TEAM_MEMBERSHIP : composed_of
     TEAM ||--o{ WORKSPACE : contains
-    WORKSPACE ||--o{ ISSUE : contains
-    ISSUE ||--o{ ISSUE : "subtasks"
-    TEAM ||--o{ PROJECT : has
+    WORKSPACE ||--o{ PROJECT : contains
     PROJECT ||--o{ TASK : contains
+    PROJECT ||--o{ ISSUE : contains
+    ISSUE  ||--o{ ISSUE : "subtasks"
 
     USER {
       Long id PK
@@ -86,13 +86,6 @@ erDiagram
       String name
       String slug
     }
-    ISSUE {
-      Long id PK
-      String title
-      IssueType type
-      IssueStatus status
-      Integer points
-    }
     PROJECT {
       Long id PK
       String name
@@ -106,6 +99,13 @@ erDiagram
       TaskStatus status
       TaskPriority priority
       LocalDate dueDate
+    }
+    ISSUE {
+      Long id PK
+      String title
+      IssueType type
+      IssueStatus status
+      Integer points
     }
 ```
 
@@ -144,10 +144,10 @@ sequenceDiagram
     participant R as IssueRepository
     participant DB
 
-    U->>C: POST /api/v1/teams/{t}/workspaces/{ws}/issues
-    C->>S: createIssue(wsId, dto)
-    S->>R: findById(wsId)
-    R-->>S: Workspace entity
+    U->>C: POST /api/v1/teams/{t}/workspaces/{ws}/projects/{p}/issues
+    C->>S: createIssue(projectId, dto)
+    S->>R: findById(projectId)
+    R-->>S: Project entity
     S->>R: save(issue)
     R-->>S: Issue entity
     S-->>C: IssueView DTO
@@ -163,8 +163,8 @@ sequenceDiagram
     participant S as IssueService
     participant R as IssueRepository
 
-    U->>C: PATCH /api/v1/teams/{t}/workspaces/{ws}/issues/{id}/status {DONE}
-    C->>S: changeStatus(ws, id, DONE)
+    U->>C: PATCH /api/v1/teams/{t}/workspaces/{ws}/projects/{p}/issues/{id}/status {DONE}
+    C->>S: changeStatus(project, id, DONE)
     S->>R: findById(id)
     R-->>S: Issue entity (IN_REVIEW)
     alt invalid transition
@@ -191,7 +191,7 @@ sequenceDiagram
 | POST | /api/v1/auth/sign-in | Issue JWT | None | AuthPayload.SignIn | AuthPayload.Token |
 | GET | /api/v1/teams | List teams for current user | USER | - | List<TeamPayload.View> |
 | POST | /api/v1/teams | Create team | USER | TeamPayload.Create | TeamPayload.View |
-| GET | /api/v1/teams/{slug}/projects | List projects | MEMBER+ | - | List<ProjectPayload.View> |
+| GET | /api/v1/teams/{team}/workspaces/{ws}/projects | List projects | VIEWER+ | - | List<ProjectPayload.View> |
 | ... | ... | ... | ... | ... | ... |
 
 Full OpenAPI spec is auto-served at `/api-docs` and `/swagger-ui/index.html`.

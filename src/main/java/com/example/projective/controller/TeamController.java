@@ -33,7 +33,7 @@ public class TeamController {
     }
 
     @GetMapping("/{slug}")
-    @PreAuthorize("@authz.hasTeamRoleAtLeast(#slug, authentication, T(com.example.projective.entity.TeamRole).MEMBER)")
+    @PreAuthorize("@authz.hasTeamRoleAtLeast(#slug, authentication, T(com.example.projective.entity.TeamRole).VIEWER)")
     public TeamPayload.View one(@PathVariable String slug) {
         return teamService.getBySlug(slug);
     }

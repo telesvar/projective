@@ -1,6 +1,6 @@
 # Projective – Project-Management API
 
-Projective is a lightweight, multi-tenant REST backend that lets organisations track projects, tasks and issues with fine-grained, role-based access control.
+Projective is a lightweight, multi-tenant REST backend that lets organisations track teams, workspaces, projects, tasks and issues with fine-grained, role-based access control.
 
 ## Table of Contents
 - [Features](#features)
@@ -10,8 +10,8 @@ Projective is a lightweight, multi-tenant REST backend that lets organisations t
 - [License](#license)
 
 ## Features
-- CRUD Workspaces, Projects, Tasks and Issues
-- Role-based access control secured by JWT
+- CRUD Teams, Workspaces, Projects, Tasks and Issues
+- Granular role-based access control (`VIEWER`, `MEMBER`, `ADMIN`, `OWNER`, `SERVICE_ADMIN`) secured by JWT
 - Kanban-style workflows with configurable state transitions
 - API-first: complete OpenAPI 3 specification & Swagger UI
 - Built with Spring Boot 3 & Java 21; container-ready

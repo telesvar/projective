@@ -14,7 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/teams/{teamSlug}/projects")
+@RequestMapping("/api/v1/teams/{teamSlug}/workspaces/{workspaceSlug}/projects")
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('USER','SERVICE_ADMIN')")
 public class ProjectController {
@@ -24,34 +24,41 @@ public class ProjectController {
     @PostMapping
     @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).ADMIN)")
     public ResponseEntity<ProjectPayload.View> createProject(@PathVariable String teamSlug,
+            @PathVariable String workspaceSlug,
             @Valid @RequestBody ProjectPayload.Create requestDTO) {
-        ProjectPayload.View responseDTO = projectService.createProject(teamSlug, requestDTO);
+        ProjectPayload.View responseDTO = projectService.createProject(teamSlug, workspaceSlug, requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
     @GetMapping
-    @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).MEMBER)")
-    public ResponseEntity<List<ProjectPayload.View>> getAllProjects(@PathVariable String teamSlug) {
-        return ResponseEntity.ok(projectService.getAllProjects(teamSlug));
+    @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).VIEWER)")
+    public ResponseEntity<List<ProjectPayload.View>> getAllProjects(@PathVariable String teamSlug,
+            @PathVariable String workspaceSlug) {
+        return ResponseEntity.ok(projectService.getAllProjects(teamSlug, workspaceSlug));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).MEMBER)")
-    public ResponseEntity<ProjectPayload.View> getProject(@PathVariable String teamSlug, @PathVariable Long id) {
-        return ResponseEntity.ok(projectService.getProjectById(teamSlug, id));
+    @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).VIEWER)")
+    public ResponseEntity<ProjectPayload.View> getProject(@PathVariable String teamSlug,
+            @PathVariable String workspaceSlug,
+            @PathVariable Long id) {
+        return ResponseEntity.ok(projectService.getProjectById(teamSlug, workspaceSlug, id));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).ADMIN)")
-    public ResponseEntity<ProjectPayload.View> updateProject(@PathVariable String teamSlug, @PathVariable Long id,
+    public ResponseEntity<ProjectPayload.View> updateProject(@PathVariable String teamSlug,
+            @PathVariable String workspaceSlug,
+            @PathVariable Long id,
             @Valid @RequestBody ProjectPayload.Create requestDTO) {
-        return ResponseEntity.ok(projectService.updateProject(teamSlug, id, requestDTO));
+        return ResponseEntity.ok(projectService.updateProject(teamSlug, workspaceSlug, id, requestDTO));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("@authz.hasTeamRoleAtLeast(#teamSlug, authentication, T(com.example.projective.entity.TeamRole).ADMIN)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProject(@PathVariable String teamSlug, @PathVariable Long id) {
-        projectService.deleteProject(teamSlug, id);
+    public void deleteProject(@PathVariable String teamSlug, @PathVariable String workspaceSlug,
+            @PathVariable Long id) {
+        projectService.deleteProject(teamSlug, workspaceSlug, id);
     }
 }

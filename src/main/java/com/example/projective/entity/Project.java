@@ -37,8 +37,8 @@ public class Project {
     private List<Task> tasks = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "team_id", nullable = false)
-    private Team team;
+    @JoinColumn(name = "workspace_id", nullable = false)
+    private Workspace workspace;
 
     public void addTask(Task task) {
         tasks.add(task);
@@ -50,7 +50,7 @@ public class Project {
         task.setProject(null);
     }
 
-    public void setTeam(Team team) {
-        this.team = team;
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
     }
 }

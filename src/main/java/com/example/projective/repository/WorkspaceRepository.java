@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
 
-    Optional<Workspace> findBySlug(String slug);
+    Optional<Workspace> findBySlugAndTeamSlug(String slug, String teamSlug);
 
-    boolean existsBySlug(String slug);
+    boolean existsBySlugAndTeamSlug(String slug, String teamSlug);
 }

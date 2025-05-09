@@ -28,10 +28,6 @@ public class Team {
     @Builder.Default
     private List<Workspace> workspaces = new ArrayList<>();
 
-    @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Project> projects = new ArrayList<>();
-
     public void addWorkspace(Workspace ws) {
         workspaces.add(ws);
         ws.setTeam(this);
@@ -40,15 +36,5 @@ public class Team {
     public void removeWorkspace(Workspace ws) {
         workspaces.remove(ws);
         ws.setTeam(null);
-    }
-
-    public void addProject(Project project) {
-        projects.add(project);
-        project.setTeam(this);
-    }
-
-    public void removeProject(Project project) {
-        projects.remove(project);
-        project.setTeam(null);
     }
 }

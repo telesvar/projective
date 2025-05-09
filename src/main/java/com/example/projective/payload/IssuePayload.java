@@ -26,6 +26,6 @@ public sealed interface IssuePayload permits IssuePayload.Create, IssuePayload.V
             IssueStatus status,
             Integer points,
             Long parentId,
-            Long workspaceId) implements IssuePayload {
+            Long projectId) implements IssuePayload {
     }
 }
