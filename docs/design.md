@@ -219,6 +219,6 @@ Centralised `RestExceptionHandler` maps custom exceptions to `ProblemDetails` st
 * Smoke/health test wired to `/health` endpoint for uptime checks
 
 ## 14. Deployment & Ops
-* Packaged as fat JAR or Docker image (`./mvnw spring-boot:build-image`)
+* Packaged as fat JAR or Docker image (`mvn spring-boot:build-image`)
 * Env vars override secrets (`APP_JWT_SECRET`, `SPRING_DATASOURCE_*`)
 * Health & metrics endpoints for Kubernetes liveness/readiness probes
