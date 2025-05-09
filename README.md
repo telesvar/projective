@@ -1,0 +1,38 @@
+# Projective – Project-Management API
+
+Projective is a lightweight, multi-tenant REST backend that lets organisations track projects, tasks and issues with fine-grained, role-based access control.
+
+## Table of Contents
+- [Features](#features)
+- [Quick Start](#quick-start)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Features
+- CRUD Workspaces, Projects, Tasks and Issues
+- Role-based access control secured by JWT
+- Kanban-style workflows with configurable state transitions
+- API-first: complete OpenAPI 3 specification & Swagger UI
+- Built with Spring Boot 3 & Java 21; container-ready
+
+## Quick Start
+```sh
+# Clone the repository
+$ git clone https://github.com/telesvar/projective.git
+$ cd projective
+
+# Build & run (dev profile uses in-memory H2)
+$ ./mvnw spring-boot:run
+```
+
+Browse Swagger UI at http://localhost:8080/swagger-ui/index.html when the application starts.
+
+## Documentation
+High-level design, architecture diagrams and requirements live in [`docs/design.md`](docs/design.md).
+
+## Contributing
+Pull requests are welcome. Please open an issue first to discuss your idea or improvement.
+
+## License
+Projective is released under the 0BSD license – see [`LICENSE`](LICENSE) for full text.
