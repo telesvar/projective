@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/java,macos,linux,windows,node,visualstudiocode,intellij,emacs,vim
-# Edit at https://www.toptal.com/developers/gitignore?templates=java,macos,linux,windows,node,visualstudiocode,intellij,emacs,vim
+# Created by https://www.toptal.com/developers/gitignore/api/vim,java,node,emacs,linux,macos,windows,intellij,visualstudiocode,maven
+# Edit at https://www.toptal.com/developers/gitignore?templates=vim,java,node,emacs,linux,macos,windows,intellij,visualstudiocode,maven
 
 ### Emacs ###
 # -*- mode: gitignore; -*-
@@ -238,6 +238,25 @@ Temporary Items
 # iCloud generated files
 *.icloud
 
+### Maven ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# https://github.com/takari/maven-wrapper#usage-without-binary-jar
+.mvn/wrapper/maven-wrapper.jar
+
+# Eclipse m2e generated files
+# Eclipse Core
+.project
+# JDT-specific (Eclipse Java Development Tools)
+.classpath
+
 ### Node ###
 # Logs
 logs
@@ -442,4 +461,4 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.toptal.com/developers/gitignore/api/java,macos,linux,windows,node,visualstudiocode,intellij,emacs,vim
+# End of https://www.toptal.com/developers/gitignore/api/vim,java,node,emacs,linux,macos,windows,intellij,visualstudiocode,maven
